@@ -1,7 +1,11 @@
 package dbclass.movie.security;
 
+import dbclass.movie.security.handler.JwtAccessDeniedHandler;
+import dbclass.movie.security.handler.JwtAuthenticationEntryPoint;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +16,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.security.Key;
+import java.util.Base64;
 
 @Configuration
 @EnableWebSecurity
@@ -19,7 +27,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @Log4j2
 public class SecurityConfig {
 
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final JwtTokenProvider jwtTokenProvider;
+
     private static final String[] URL_TO_PERMIT = {
+            "/customer/signup",
+            "/customer/signin",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
             "/"
     };
 
@@ -40,10 +56,22 @@ public class SecurityConfig {
                 .sessionManagement()     //세션은 stateless방식
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
 
                 .and()                //jwt를 사용하는 STATELESS방식이므로 session 사용하지 않는다고 명시
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .and()
+                .authorizeHttpRequests()
+                .requestMatchers(URL_TO_PERMIT).permitAll()
+                .anyRequest().authenticated();
+
+        http
+                .addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
