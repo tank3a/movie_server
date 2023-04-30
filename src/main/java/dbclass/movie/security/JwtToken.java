@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -13,4 +15,5 @@ public class JwtToken {
 
     private String accessToken;
     private String refreshToken;
+    private Duration duration;
 }

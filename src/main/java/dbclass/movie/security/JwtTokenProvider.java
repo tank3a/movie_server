@@ -1,6 +1,7 @@
 package dbclass.movie.security;
 
 import dbclass.movie.domain.user.Role;
+import dbclass.movie.exceptionHandler.JwtAuthenticationException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.log4j.Log4j2;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -53,6 +55,7 @@ public class JwtTokenProvider {
         return JwtToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .duration(Duration.between(currentTime, refreshTokenExpirationTime))
                 .build();
     }
 
@@ -76,17 +79,13 @@ public class JwtTokenProvider {
             return 0;
 
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-            return -1;
+            throw new JwtAuthenticationException("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-            return -1;
+            throw new JwtAuthenticationException("만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
-            return -1;
+            throw new JwtAuthenticationException("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
-            return -1;
+            throw new JwtAuthenticationException("JWT 토큰이 잘못되었습니다.");
         }
     }
 
