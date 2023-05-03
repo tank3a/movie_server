@@ -2,9 +2,9 @@ package dbclass.movie.service;
 
 import dbclass.movie.domain.user.Customer;
 import dbclass.movie.domain.user.Role;
-import dbclass.movie.dto.CustomerInfoDTO;
-import dbclass.movie.dto.CustomerInfoToClientDTO;
-import dbclass.movie.dto.CustomerLoginDTO;
+import dbclass.movie.dto.user.CustomerInfoDTO;
+import dbclass.movie.dto.user.CustomerInfoToClientDTO;
+import dbclass.movie.dto.user.CustomerLoginDTO;
 import dbclass.movie.exceptionHandler.DuplicateUserException;
 import dbclass.movie.exceptionHandler.InvalidAccessException;
 import dbclass.movie.exceptionHandler.LoginFailureException;

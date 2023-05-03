@@ -1,8 +1,8 @@
 package dbclass.movie.controller;
 
-import dbclass.movie.dto.CustomerInfoToClientDTO;
-import dbclass.movie.dto.CustomerLoginDTO;
-import dbclass.movie.dto.CustomerInfoDTO;
+import dbclass.movie.dto.user.CustomerInfoToClientDTO;
+import dbclass.movie.dto.user.CustomerLoginDTO;
+import dbclass.movie.dto.user.CustomerInfoDTO;
 import dbclass.movie.security.JwtToken;
 import dbclass.movie.security.SecurityUtil;
 import dbclass.movie.service.CustomerService;

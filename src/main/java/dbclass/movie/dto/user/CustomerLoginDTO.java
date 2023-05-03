@@ -1,4 +1,4 @@
-package dbclass.movie.dto;
+package dbclass.movie.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
