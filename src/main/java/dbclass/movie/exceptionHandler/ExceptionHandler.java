@@ -80,4 +80,40 @@ public class ExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(ServerException.class)
+    public ResponseEntity<ErrorResponse> invalidAccess(ServerException exception) {
+        log.warn("Server Runtime Exception: " + exception.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message(exception.getMessage())
+                .errorCode("RUNTIME_EXCEPTION")
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(MovieNotFoundException.class)
+    public ResponseEntity<ErrorResponse> movieEntityNotFound(MovieNotFoundException exception) {
+        log.warn(exception.getType() + " data not found: " + exception.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.NOT_FOUND)
+                .message(exception.getMessage())
+                .errorCode("MOVIE_ENTITY_NOT_FOUND")
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(MovieExistsException.class)
+    public ResponseEntity<ErrorResponse> movieEntityExist(MovieExistsException exception) {
+        log.warn(exception.getType() + " data already exists: " + exception.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT)
+                .message(exception.getMessage())
+                .errorCode("MOVIE_ENTITY_EXISTS")
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
 }

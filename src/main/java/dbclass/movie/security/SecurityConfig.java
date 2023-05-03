@@ -2,10 +2,8 @@ package dbclass.movie.security;
 
 import dbclass.movie.security.handler.JwtAccessDeniedHandler;
 import dbclass.movie.security.handler.JwtAuthenticationEntryPoint;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +32,11 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/"
+    };
+    private static final String[] URL_ADMIN_ONLY = {
+            "/movie/rating/**",
+            "/movie/cast/**",
+            "/movie/**"
     };
 
     @Bean
@@ -65,6 +68,8 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers(URL_TO_PERMIT).permitAll()
+                .requestMatchers(URL_ADMIN_ONLY).permitAll()
+//                .requestMatchers(URL_ADMIN_ONLY).hasRole(Role.ROLE_ADMIN.getType())
                 .anyRequest().authenticated();
 
         http
