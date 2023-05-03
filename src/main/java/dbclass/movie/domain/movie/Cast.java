@@ -19,7 +19,7 @@ public class Cast extends Image {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cast_sequence")
     @SequenceGenerator(name = "cast_sequence", sequenceName = "cast_sequence", allocationSize = 1)
     @Column(name = "CAST_ID")
-    private Long cast_id;
+    private Long castId;
 
     @Column(name = "NAME", nullable = false)
     private String name;
@@ -28,7 +28,7 @@ public class Cast extends Image {
     private Date birthDate;
 
     @Column(name = "NATIONALITY", nullable = false)
-    private int nationality;
+    private String nationality;
 
     @Column(name = "INFO", nullable = false)
     private String info;

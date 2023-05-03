@@ -15,8 +15,11 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rating_sequence")
     @SequenceGenerator(name = "rating_sequence", sequenceName = "rating_sequence", allocationSize = 1)
     @Column(name = "RATING_ID")
-    private int rating_id;
+    private int ratingId;
 
     @Column(name = "NAME", nullable = false)
     private String name;
+
+    @Column(name = "MIN_AGE")
+    private int minAge;
 }

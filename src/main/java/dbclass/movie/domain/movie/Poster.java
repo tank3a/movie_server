@@ -17,5 +17,5 @@ public class Poster extends Image {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "poster_sequence")
     @SequenceGenerator(name = "poster_sequence", sequenceName = "poster_sequence", allocationSize = 1)
     @Column(name = "POSTER_ID")
-    private Long poster_id;
+    private Long posterId;
 }

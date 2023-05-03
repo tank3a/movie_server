@@ -3,7 +3,8 @@ package dbclass.movie.domain.movie;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.sql.Date;
+
 
 @Entity
 @Builder
@@ -17,22 +18,22 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "movie_sequence")
     @SequenceGenerator(name = "movie_sequence", sequenceName = "movie_sequence", allocationSize = 1)
     @Column(name = "MOVIE_ID")
-    private Long movie_id;
+    private Long movieId;
 
     @Column(name = "TITLE", nullable = false)
     private String title;
 
     @Column(name = "RELEASE_DATE", nullable = false)
-    private Date release_date;
+    private Date releaseDate;
 
     @Column(name = "RUNNING_TIME", nullable = false)
-    private int running_time;
+    private int runningTime;
 
     @Column(name = "INFO", nullable = false)
     private String info;
 
     @Column(name = "COUNTRY", nullable = false)
-    private String country_code;
+    private String countryCode;
 
     @Column(name = "LANGUAGE")
     private String language;
