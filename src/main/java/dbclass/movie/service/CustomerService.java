@@ -2,13 +2,15 @@ package dbclass.movie.service;
 
 import dbclass.movie.domain.user.Customer;
 import dbclass.movie.domain.user.Role;
+import dbclass.movie.domain.user.UserAuthority;
+import dbclass.movie.domain.user.UserAuthorityId;
 import dbclass.movie.dto.user.CustomerInfoDTO;
 import dbclass.movie.dto.user.CustomerInfoToClientDTO;
-import dbclass.movie.dto.user.CustomerLoginDTO;
+import dbclass.movie.dto.user.LoginDTO;
 import dbclass.movie.exceptionHandler.DuplicateUserException;
 import dbclass.movie.exceptionHandler.InvalidAccessException;
-import dbclass.movie.exceptionHandler.LoginFailureException;
 import dbclass.movie.exceptionHandler.NotExistException;
+import dbclass.movie.repository.AuthorityRepository;
 import dbclass.movie.repository.CustomerRepository;
 import dbclass.movie.security.JwtToken;
 import dbclass.movie.security.JwtTokenProvider;
@@ -16,42 +18,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
-import java.util.Collections;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class CustomerService implements UserDetailsService {
+public class CustomerService {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider tokenProvider;
-
-
-    @Override
-    public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
-        return customerRepository.findByLoginId(loginId).map(this::createUserDetails).orElseThrow(() -> new LoginFailureException("존재하지 않는 아이디입니다."));
-    }
-    private UserDetails createUserDetails(Customer customer) {
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(Role.ROLE_USER.getType());
-
-        return new User(
-                customer.getLoginId(),
-                customer.getPassword(),
-                Collections.singleton(grantedAuthority)
-        );
-    }
+    private final AuthorityRepository authorityRepository;
 
     @Transactional
     public void signup(CustomerInfoDTO signupDTO) {
@@ -73,11 +54,21 @@ public class CustomerService implements UserDetailsService {
                 .nickname(signupDTO.getNickname())
                 .build();
 
-        customerRepository.save(customer);
+        customer = customerRepository.save(customer);
+
+        UserAuthority authority = UserAuthority.builder()
+                .loginId(customer.getLoginId())
+                .password(customer.getPassword())
+                .customer(customer)
+                .authority(Role.ROLE_USER.getType())
+                .build();
+
+        authorityRepository.save(authority);
+
     }
 
-    @Transactional
-    public JwtToken signIn(CustomerLoginDTO loginDTO) {
+    @Transactional(readOnly = true)
+    public JwtToken signIn(LoginDTO loginDTO) {
         UsernamePasswordAuthenticationToken authenticationToken = loginDTO.toAuthentication();
         authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
@@ -122,6 +113,17 @@ public class CustomerService implements UserDetailsService {
                 .build();
 
         customerRepository.save(modifyCustomer);
+
+        if((modifyDTO.getPassword() != null && modifyDTO.getPassword() != "")) {
+            UserAuthorityId id = UserAuthorityId.builder()
+                    .loginId(modifyCustomer.getLoginId())
+                    .authority(Role.ROLE_USER.getType())
+                    .build();
+            UserAuthority authority = authorityRepository.findById(id).orElseThrow(() -> new RuntimeException("존재하지 않는 권한입니다."));
+            authority.setPassword(modifyCustomer.getPassword());
+
+            authorityRepository.save(authority);
+        }
     }
 
     @Transactional

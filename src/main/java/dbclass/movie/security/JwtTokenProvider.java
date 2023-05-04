@@ -61,9 +61,7 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String accessToken) throws ExpiredJwtException {
         Claims claims = Jwts.parserBuilder().setSigningKey(encodedKey).build().parseClaimsJws(accessToken).getBody();
-        List<String> role = new ArrayList<>();
-        role.add((String) claims.get("role"));
-        Collection<? extends GrantedAuthority> authority = role.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        Collection<? extends GrantedAuthority> authority = Arrays.asList(new SimpleGrantedAuthority((String) claims.get("role")));
         UserDetails userDetails = new User(claims.getSubject(), "", authority);
         return new UsernamePasswordAuthenticationToken(userDetails, "", authority);
     }

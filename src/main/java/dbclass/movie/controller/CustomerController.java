@@ -1,7 +1,7 @@
 package dbclass.movie.controller;
 
 import dbclass.movie.dto.user.CustomerInfoToClientDTO;
-import dbclass.movie.dto.user.CustomerLoginDTO;
+import dbclass.movie.dto.user.LoginDTO;
 import dbclass.movie.dto.user.CustomerInfoDTO;
 import dbclass.movie.security.JwtToken;
 import dbclass.movie.security.SecurityUtil;
@@ -36,7 +36,7 @@ public class CustomerController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<String> customerSignIn(@ModelAttribute CustomerLoginDTO loginDTO) {
+    public ResponseEntity<String> customerSignIn(@ModelAttribute LoginDTO loginDTO) {
         log.debug("signin request: " + loginDTO);
         JwtToken token = customerService.signIn(loginDTO);
 

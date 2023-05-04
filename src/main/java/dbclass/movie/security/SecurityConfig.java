@@ -31,11 +31,15 @@ public class SecurityConfig {
             "/customer/signin",
             "/v3/api-docs/**",
             "/swagger-ui/**",
+            "/admin/signin",
+            "/admin/signup",
             "/"
     };
     private static final String[] URL_ADMIN_ONLY = {
             "/movie/rating/**",
             "/movie/cast/**",
+            "/movie/role/**",
+            "/movie/genre/**",
             "/movie/**"
     };
 
@@ -68,8 +72,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers(URL_TO_PERMIT).permitAll()
-                .requestMatchers(URL_ADMIN_ONLY).permitAll()
-//                .requestMatchers(URL_ADMIN_ONLY).hasRole(Role.ROLE_ADMIN.getType())
+                .requestMatchers(URL_ADMIN_ONLY).hasRole("ADMIN")
                 .anyRequest().authenticated();
 
         http

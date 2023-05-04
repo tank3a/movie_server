@@ -2,6 +2,7 @@ package dbclass.movie.controller;
 
 import dbclass.movie.dto.movie.*;
 import dbclass.movie.service.MovieService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 @RequestMapping("/movie")
+@Tag(name = "영화 관련 로직", description = "영화 페이지 등록 시 영화/장르/등급/캐스트/역할 추가 API")
 public class MovieController {
 
     private final MovieService movieService;
