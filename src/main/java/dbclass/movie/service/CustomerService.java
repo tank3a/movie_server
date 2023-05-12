@@ -7,9 +7,9 @@ import dbclass.movie.domain.user.UserAuthorityId;
 import dbclass.movie.dto.user.CustomerInfoDTO;
 import dbclass.movie.dto.user.CustomerInfoToClientDTO;
 import dbclass.movie.dto.user.LoginDTO;
-import dbclass.movie.exceptionHandler.DuplicateUserException;
+import dbclass.movie.exceptionHandler.DataExistsException;
 import dbclass.movie.exceptionHandler.InvalidAccessException;
-import dbclass.movie.exceptionHandler.NotExistException;
+import dbclass.movie.exceptionHandler.DataNotExistsException;
 import dbclass.movie.repository.AuthorityRepository;
 import dbclass.movie.repository.CustomerRepository;
 import dbclass.movie.security.JwtToken;
@@ -38,10 +38,10 @@ public class CustomerService {
     public void signup(CustomerInfoDTO signupDTO) {
 
         if(customerRepository.existsByLoginId(signupDTO.getLoginId())) {
-            throw new DuplicateUserException("중복된 아이디입니다.");
+            throw new DataExistsException("중복된 아이디입니다.", "Customer");
         }
         if(customerRepository.existsByEmail(signupDTO.getEmail())) {
-            throw new DuplicateUserException("중복된 이메일입니다.");
+            throw new DataExistsException("중복된 이메일입니다.", "Customer");
         }
         Customer customer = Customer.builder()
                 .name(signupDTO.getName())
@@ -76,7 +76,7 @@ public class CustomerService {
     }
 
     public CustomerInfoToClientDTO getData(String loginId) {
-        Customer customer = customerRepository.findByLoginId(loginId).orElseThrow(() -> new NotExistException("존재하지 않는 회원입니다."));
+        Customer customer = customerRepository.findByLoginId(loginId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 회원입니다.", "User"));
         CustomerInfoToClientDTO dto = CustomerInfoToClientDTO.builder()
                 .name(customer.getName())
                 .email(customer.getEmail())
@@ -96,7 +96,7 @@ public class CustomerService {
             throw new InvalidAccessException("고객 ID가 변경시도 되었습니다. 다시 시도해주세요.");
         }
 
-        Customer originalData = customerRepository.findByLoginId(loginId).orElseThrow(() -> new NotExistException("존재하지 않는 회원입니다."));
+        Customer originalData = customerRepository.findByLoginId(loginId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 회원입니다.", "User"));
 
         Customer modifyCustomer = Customer.builder()
                 .customerId(originalData.getCustomerId())
@@ -128,7 +128,7 @@ public class CustomerService {
 
     @Transactional
     public void deleteCustomer(String loginId, String password, PasswordEncoder passwordEncoder) {
-        Customer customer = customerRepository.findByLoginId(loginId).orElseThrow(() -> new NotExistException("존재하지 않는 토큰입니다."));
+        Customer customer = customerRepository.findByLoginId(loginId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 토큰입니다.", "User"));
         if(passwordEncoder.matches(password, customer.getPassword())) {
             customerRepository.deleteById(customer.getId());
         }

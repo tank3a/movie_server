@@ -33,18 +33,6 @@ public class ExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(DuplicateUserException.class)
-    public ResponseEntity<ErrorResponse> duplicateUserId(DuplicateUserException exception) {
-        log.warn("duplicate request: " + exception.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.CONFLICT)
-                .message(exception.getMessage())
-                .errorCode("USER_DATA_CONFLICT")
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-    }
-
     @org.springframework.web.bind.annotation.ExceptionHandler(JwtAuthenticationException.class)
     public ResponseEntity<ErrorResponse> jwtError(JwtAuthenticationException exception) {
         log.warn("jwt token error: " + exception.getMessage());
@@ -57,13 +45,13 @@ public class ExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(NotExistException.class)
-    public ResponseEntity<ErrorResponse> notExistError(NotExistException exception) {
-        log.warn("user not exist: " + exception.getMessage());
+    @org.springframework.web.bind.annotation.ExceptionHandler(DataNotExistsException.class)
+    public ResponseEntity<ErrorResponse> notExistError(DataNotExistsException exception) {
+        log.warn(exception.getType() + " not exist: " + exception.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND)
                 .message(exception.getMessage())
-                .errorCode("USER_NOT_EXIST_ERROR")
+                .errorCode("NOT_EXIST_ERROR")
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
@@ -93,25 +81,13 @@ public class ExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(MovieNotFoundException.class)
-    public ResponseEntity<ErrorResponse> movieEntityNotFound(MovieNotFoundException exception) {
-        log.warn(exception.getType() + " data not found: " + exception.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.NOT_FOUND)
-                .message(exception.getMessage())
-                .errorCode("MOVIE_ENTITY_NOT_FOUND")
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(MovieExistsException.class)
-    public ResponseEntity<ErrorResponse> movieEntityExist(MovieExistsException exception) {
+    @org.springframework.web.bind.annotation.ExceptionHandler(DataExistsException.class)
+    public ResponseEntity<ErrorResponse> dataExists(DataExistsException exception) {
         log.warn(exception.getType() + " data already exists: " + exception.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.CONFLICT)
                 .message(exception.getMessage())
-                .errorCode("MOVIE_ENTITY_EXISTS")
+                .errorCode("DATA_EXISTS")
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);

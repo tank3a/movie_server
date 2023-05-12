@@ -5,7 +5,7 @@ import dbclass.movie.domain.user.Role;
 import dbclass.movie.domain.user.UserAuthority;
 import dbclass.movie.dto.user.AdminInfoDTO;
 import dbclass.movie.dto.user.LoginDTO;
-import dbclass.movie.exceptionHandler.DuplicateUserException;
+import dbclass.movie.exceptionHandler.DataExistsException;
 import dbclass.movie.repository.AdminRepository;
 import dbclass.movie.repository.AuthorityRepository;
 import dbclass.movie.security.JwtToken;
@@ -30,7 +30,7 @@ public class AdminService {
     @Transactional
     public void signup(AdminInfoDTO signupDTO) {
         if(adminRepository.existsByLoginId(signupDTO.getLoginId())) {
-            throw new DuplicateUserException("중복된 아이디입니다.");
+            throw new DataExistsException("중복된 아이디입니다.", "Admin");
         }
 
         Admin admin = Admin.builder()

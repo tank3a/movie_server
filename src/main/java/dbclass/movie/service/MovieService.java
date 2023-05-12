@@ -3,8 +3,8 @@ package dbclass.movie.service;
 import dbclass.movie.domain.movie.*;
 import dbclass.movie.dto.ImageDTO;
 import dbclass.movie.dto.movie.*;
-import dbclass.movie.exceptionHandler.MovieExistsException;
-import dbclass.movie.exceptionHandler.MovieNotFoundException;
+import dbclass.movie.exceptionHandler.DataExistsException;
+import dbclass.movie.exceptionHandler.DataNotExistsException;
 import dbclass.movie.exceptionHandler.ServerException;
 import dbclass.movie.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +41,8 @@ public class MovieService {
     @Transactional
     public MovieDTO register(MovieRegisterDTO registerDTO) {
         log.debug("movie register start");
-        Cast director = castRepository.findById(registerDTO.getDirectorId()).orElseThrow(() -> new MovieNotFoundException("존재하지 않는 감독 ID입니다.", "cast"));
-        Rating rating = ratingRepository.findById(registerDTO.getRatingId()).orElseThrow(() -> new MovieNotFoundException("존재하지 않는 등급입니다.", "rating"));
+        Cast director = castRepository.findById(registerDTO.getDirectorId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 감독 ID입니다.", "cast"));
+        Rating rating = ratingRepository.findById(registerDTO.getRatingId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 등급입니다.", "rating"));
         Poster poster = createPoster(registerDTO.getPoster());
 
         Movie movie = Movie.builder()
@@ -122,7 +122,7 @@ public class MovieService {
     public List<RatingDTO> addRating(RatingDTO ratingDTO) {
 
         if(ratingRepository.existsByName(ratingDTO.getName())) {
-            throw new MovieExistsException("존재하는 rating 이름입니다.", "rating");
+            throw new DataExistsException("존재하는 rating 이름입니다.", "rating");
         }
 
         Rating rating = Rating.builder()
@@ -138,7 +138,7 @@ public class MovieService {
     @Transactional
     public List<RatingDTO> modifyRating(RatingDTO ratingDTO) {
         if(!ratingRepository.existsById(ratingDTO.getRatingId())) {
-            throw new MovieNotFoundException("존재하지 않는 rating입니다.", "rating");
+            throw new DataNotExistsException("존재하지 않는 rating입니다.", "rating");
         }
 
         Rating rating = Rating.builder()
@@ -200,7 +200,7 @@ public class MovieService {
 
     @Transactional
     public List<CastInMovieDTO> modifyCast(CastInfoDTO infoDTO) {
-        Cast originalCast = castRepository.findById(infoDTO.getCastId()).orElseThrow(() -> new MovieNotFoundException("존재하지 않는 감독/배우입니다.", "cast"));
+        Cast originalCast = castRepository.findById(infoDTO.getCastId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 감독/배우입니다.", "cast"));
 
         ImageDTO imageDTO = infoDTO.getProfileImage().isEmpty() ? null : createCastImageDTO(infoDTO.getProfileImage());
 
@@ -231,8 +231,8 @@ public class MovieService {
 
     @Transactional
     public void addRole(Long movieId, RoleAddDTO roleAddDTO) {
-        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException("존재하지 않는 영화 ID입니다.", "movie"));
-        Cast cast = castRepository.findById(roleAddDTO.getCastId()).orElseThrow(() -> new MovieNotFoundException("존재하지 않는 배우 ID입니다.", "cast"));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 영화 ID입니다.", "movie"));
+        Cast cast = castRepository.findById(roleAddDTO.getCastId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 배우 ID입니다.", "cast"));
 
         Role role = Role.builder()
                 .movie(movie)
@@ -247,7 +247,7 @@ public class MovieService {
     @Transactional
     public List<GenreDTO> addGenre(String name) {
         if(genreRepository.existsByName(name)) {
-            throw new MovieExistsException("이미 저장된 장르 입니다.", "genre");
+            throw new DataExistsException("이미 저장된 장르 입니다.", "genre");
         }
 
         Genre genre = Genre.builder()
