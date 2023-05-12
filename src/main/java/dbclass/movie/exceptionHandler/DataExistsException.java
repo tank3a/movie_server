@@ -3,10 +3,10 @@ package dbclass.movie.exceptionHandler;
 import lombok.Getter;
 
 @Getter
-public class MovieExistsException extends RuntimeException {
+public class DataExistsException extends RuntimeException {
 
     private final String type;
-    public MovieExistsException(String message, String type) {
+    public DataExistsException(String message, String type) {
         super(message);
         this.type = type;
     }
