@@ -5,6 +5,7 @@ import dbclass.movie.service.MovieService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,17 +19,17 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public MovieDTO registerMovie(@ModelAttribute MovieRegisterDTO movieRegisterDTO) {
         return movieService.register(movieRegisterDTO);
     }
 
-    @PostMapping("/rating/add")
+    @PostMapping(value = "/rating/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<RatingDTO> registerRating(@ModelAttribute RatingDTO ratingDTO) {
         return movieService.addRating(ratingDTO);
     }
 
-    @PostMapping("/rating/modify")
+    @PostMapping(value = "/rating/modify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<RatingDTO> modifyRating(@ModelAttribute RatingDTO ratingDTO) {
         return movieService.modifyRating(ratingDTO);
     }
@@ -38,17 +39,17 @@ public class MovieController {
         return movieService.getRatingList();
     }
 
-    @PostMapping("/role/add")
+    @PostMapping(value = "/role/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void addRole(@PathVariable("movieId") Long movieId, @ModelAttribute RoleAddDTO rolesToAddDTO) {
         movieService.addRole(movieId, rolesToAddDTO);
     }
 
-    @PostMapping("/cast/register")
+    @PostMapping(value = "/cast/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<CastInMovieDTO> registerCast(@ModelAttribute CastInfoDTO infoDTO) {
         return movieService.addCast(infoDTO);
     }
 
-    @PostMapping("/cast/modify")
+    @PostMapping(value = "/cast/modify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<CastInMovieDTO> modifyCast(@ModelAttribute CastInfoDTO infoDTO) {
         return movieService.modifyCast(infoDTO);
     }

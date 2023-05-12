@@ -9,10 +9,7 @@ import dbclass.movie.service.CustomerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +24,7 @@ public class CustomerController {
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
 
-    @PostMapping("/signup")
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> customerSignup(@ModelAttribute CustomerInfoDTO signupDTO) {
         log.debug("signup request: " + signupDTO);
         signupDTO.setPassword(passwordEncoder.encode(signupDTO.getPassword()));
@@ -35,7 +32,7 @@ public class CustomerController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping("/signin")
+    @PostMapping(value = "/signin", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> customerSignIn(@ModelAttribute LoginDTO loginDTO) {
         log.debug("signin request: " + loginDTO);
         JwtToken token = customerService.signIn(loginDTO);
@@ -62,7 +59,7 @@ public class CustomerController {
         return customerService.getData(loginId);
     }
 
-    @PostMapping("/modify")
+    @PostMapping(value = "/modify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> customerModify(@ModelAttribute CustomerInfoDTO modifyDTO) {
         log.debug("modify customer data: " + modifyDTO);
 
