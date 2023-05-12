@@ -40,7 +40,14 @@ public class SecurityConfig {
             "/movie/cast/**",
             "/movie/role/**",
             "/movie/genre/**",
-            "/movie/**"
+            "/movie/**",
+            "/theater/register",
+            "/theater/{id}/seat/register",
+            "/theater/modify",
+            "/theater/{id}/seat/modify",
+            "/theater/{id}/delete",
+            "/theater/{id}/seat/delete"
+
     };
 
     @Bean

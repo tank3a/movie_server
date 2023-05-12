@@ -49,6 +49,4 @@ public class Movie {
     @OneToOne
     @JoinColumn(name = "RATING", nullable = false)
     private Rating rating;
-
-
 }
