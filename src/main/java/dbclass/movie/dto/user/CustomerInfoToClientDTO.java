@@ -18,4 +18,5 @@ public class CustomerInfoToClientDTO {
     private int gender;
     private String phoneNo;
     private String email;
+    private int point;
 }

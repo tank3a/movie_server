@@ -10,5 +10,5 @@ import lombok.*;
 public class SeatDeleteDTO {
 
     private int column;
-    private char row;
+    private Character row;
 }

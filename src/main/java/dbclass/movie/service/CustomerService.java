@@ -10,6 +10,7 @@ import dbclass.movie.dto.user.LoginDTO;
 import dbclass.movie.exceptionHandler.DataExistsException;
 import dbclass.movie.exceptionHandler.InvalidAccessException;
 import dbclass.movie.exceptionHandler.DataNotExistsException;
+import dbclass.movie.mapper.CustomerMapper;
 import dbclass.movie.repository.AuthorityRepository;
 import dbclass.movie.repository.CustomerRepository;
 import dbclass.movie.security.JwtToken;
@@ -43,19 +44,13 @@ public class CustomerService {
         if(customerRepository.existsByEmail(signupDTO.getEmail())) {
             throw new DataExistsException("중복된 이메일입니다.", "Customer");
         }
-        Customer customer = Customer.builder()
-                .name(signupDTO.getName())
-                .loginId(signupDTO.getLoginId())
-                .password(signupDTO.getPassword())
-                .email(signupDTO.getEmail())
-                .birthdate(Date.valueOf(signupDTO.getBirthdate()))
-                .gender(signupDTO.getGender())
-                .phoneNo(signupDTO.getPhoneNo())
-                .nickname(signupDTO.getNickname())
-                .build();
+        Customer customer = CustomerMapper.customerInfoDTOToCustomer(signupDTO);
 
         customer = customerRepository.save(customer);
 
+        if(authorityRepository.existsByLoginId(customer.getLoginId())) {
+            throw new DataExistsException("이미 사용중인 ID입니다.", "Customer");
+        }
         UserAuthority authority = UserAuthority.builder()
                 .loginId(customer.getLoginId())
                 .password(customer.getPassword())
@@ -77,15 +72,7 @@ public class CustomerService {
 
     public CustomerInfoToClientDTO getData(String loginId) {
         Customer customer = customerRepository.findByLoginId(loginId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 회원입니다.", "User"));
-        CustomerInfoToClientDTO dto = CustomerInfoToClientDTO.builder()
-                .name(customer.getName())
-                .email(customer.getEmail())
-                .phoneNo(customer.getPhoneNo())
-                .gender(customer.getGender())
-                .birthdate(customer.getBirthdate())
-                .loginId(customer.getLoginId())
-                .nickname(customer.getNickname())
-                .build();
+        CustomerInfoToClientDTO dto = CustomerMapper.customerToCustomerInfoToClientDTO(customer);
 
         return dto;
     }
@@ -96,32 +83,23 @@ public class CustomerService {
             throw new InvalidAccessException("고객 ID가 변경시도 되었습니다. 다시 시도해주세요.");
         }
 
-        Customer originalData = customerRepository.findByLoginId(loginId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 회원입니다.", "User"));
+        if(!customerRepository.existsByLoginId(loginId)) {
+            throw new DataNotExistsException("존재하지 않는 회원입니다.", "User");
+        }
 
-        Customer modifyCustomer = Customer.builder()
-                .customerId(originalData.getCustomerId())
-                .loginId(modifyDTO.getLoginId())
-                .nickname(modifyDTO.getNickname())
-                .birthdate(Date.valueOf(modifyDTO.getBirthdate()))
-                .gender(modifyDTO.getGender())
-                .phoneNo(modifyDTO.getPhoneNo())
-                .point(originalData.getPoint())
-                .password((modifyDTO.getPassword() != null && modifyDTO.getPassword() != "") ? modifyDTO.getPassword() : originalData.getPassword())
-                .createdAt(originalData.getCreatedAt())
-                .email(modifyDTO.getEmail())
-                .name(modifyDTO.getName())
-                .build();
+        Customer modifyCustomer = CustomerMapper.customerInfoDTOToCustomer(modifyDTO);
+        customerRepository.updateCustomer(modifyCustomer, loginId);
 
-        customerRepository.save(modifyCustomer);
 
         if((modifyDTO.getPassword() != null && modifyDTO.getPassword() != "")) {
+            customerRepository.updatePassword(modifyDTO.getPassword(), loginId);
+
             UserAuthorityId id = UserAuthorityId.builder()
                     .loginId(modifyCustomer.getLoginId())
                     .authority(Role.ROLE_USER.getType())
                     .build();
             UserAuthority authority = authorityRepository.findById(id).orElseThrow(() -> new RuntimeException("존재하지 않는 권한입니다."));
             authority.setPassword(modifyCustomer.getPassword());
-
             authorityRepository.save(authority);
         }
     }

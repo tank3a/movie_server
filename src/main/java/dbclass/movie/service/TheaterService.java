@@ -6,6 +6,7 @@ import dbclass.movie.domain.theater.Theater;
 import dbclass.movie.dto.theater.*;
 import dbclass.movie.exceptionHandler.DataExistsException;
 import dbclass.movie.exceptionHandler.DataNotExistsException;
+import dbclass.movie.mapper.TheaterMapper;
 import dbclass.movie.repository.SeatRepository;
 import dbclass.movie.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,72 +32,35 @@ public class TheaterService {
         if(theaterRepository.existsByName(registerDTO.getName())) {
             throw new DataExistsException("이미 존재하는 상영관입니다.", "theater");
         }
-        Theater theater = Theater.builder()
-                .type(registerDTO.getType())
-                .floor(registerDTO.getFloor())
-                .name(registerDTO.getName())
-                .build();
-        theater = theaterRepository.save(theater);
-        return TheaterDTO.builder()
-                .theaterId(theater.getTheaterId())
-                .floor(theater.getFloor())
-                .name(theater.getName())
-                .type(theater.getType())
-                .build();
+        Theater theater = theaterRepository.save(TheaterMapper.theaterRegisterDTOToTheater(registerDTO));
+        return TheaterMapper.theaterToTheaterDTO(theater);
     }
 
     @Transactional
     public void registerSeat(Long theaterId, List<SeatRegisterDTO> seatToRegister) {
         Theater theater = theaterRepository.findById(theaterId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 상영관ID입니다.", "Theater"));
 
-        List<Seat> seats = new ArrayList<>();
-
-        ListIterator<SeatRegisterDTO> listIterator = seatToRegister.listIterator();
-        while(listIterator.hasNext()) {
-            SeatRegisterDTO registerDTO = listIterator.next();
-            char row = registerDTO.getSeatLocation().charAt(0);
-            int col = Integer.parseInt(registerDTO.getSeatLocation().substring(1));
-            Seat seat = Seat.builder()
-                    .theater(theater)
-                    .row(row)
-                    .column(col)
-                    .price(registerDTO.getPrice())
-                    .build();
-
-            seats.add(seat);
-        }
-
+        List<Seat> seats = seatToRegister.stream().map(seatRegisterDTO -> TheaterMapper.seatRegisterDTOToSeat(seatRegisterDTO, theater)).collect(Collectors.toList());
         seatRepository.saveAll(seats.stream().distinct().collect(Collectors.toList()));
     }
 
     @Transactional(readOnly = true)
     public TheaterDTO getTheater(Long theaterId) {
         Theater theater = theaterRepository.findById(theaterId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 상영관입니다.", "Theater"));
-        return TheaterDTO.builder()
-                .theaterId(theater.getTheaterId())
-                .type(theater.getType())
-                .name(theater.getName())
-                .floor(theater.getFloor())
-                .build();
+        return TheaterMapper.theaterToTheaterDTO(theater);
     }
 
     @Transactional(readOnly = true)
     public List<SeatDTO> getSeats(Long theaterId) {
         Theater theater = theaterRepository.findById(theaterId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 상영관입니다.", "Theater"));
 
-        List<Seat> seats = seatRepository.findAllByTheater(theater);
+        List<Seat> seats = seatRepository.findAllByTheaterOrderBySeatIdAsc(theater);
 
         return seats.stream().map(seat -> seatToSeatDTOMapper(seat)).collect(Collectors.toList());
     }
 
     private SeatDTO seatToSeatDTOMapper(Seat seat) {
-        return SeatDTO.builder()
-                .seatId(seat.getSeatId())
-                .theaterId(seat.getTheater().getTheaterId())
-                .price(seat.getPrice())
-                .column(seat.getColumn())
-                .row(seat.getRow())
-                .build();
+        return TheaterMapper.seatToSeatDTO(seat);
     }
 
     @Transactional
@@ -108,21 +72,10 @@ public class TheaterService {
         if(theaterRepository.existsByName(registerDTO.getName())) {
             throw new DataExistsException("이미 존재하는 상영관이름입니다.", "Theater");
         }
-        Theater theater = Theater.builder()
-                .theaterId(registerDTO.getTheaterId())
-                .name(registerDTO.getName())
-                .floor(registerDTO.getFloor())
-                .type(registerDTO.getType())
-                .build();
 
-        theaterRepository.save(theater);
+        Theater theater = theaterRepository.save(TheaterMapper.theaterRegisterDTOToTheater(registerDTO));
 
-        return TheaterDTO.builder()
-                .type(theater.getType())
-                .theaterId(theater.getTheaterId())
-                .floor(theater.getFloor())
-                .name(theater.getName())
-                .build();
+        return TheaterMapper.theaterToTheaterDTO(theater);
 
     }
 
@@ -130,16 +83,15 @@ public class TheaterService {
     public void modifySeat(Long theaterId, SeatRegisterDTO seatToModify) {
         Theater theater = theaterRepository.findById(theaterId).orElseThrow(() -> new DataNotExistsException("존재하지 않는 상영관 ID입니다.", "Theater"));
 
-        char row = seatToModify.getSeatLocation().charAt(0);
-        int col = Integer.parseInt(seatToModify.getSeatLocation().substring(1));
-        Seat seat = Seat.builder()
+        if(!seatToModify.getSeatLocation().equals(seatToModify.getOriginalSeatId())) {
+            SeatId seatId = SeatId.builder()
                 .theater(theater)
-                .row(row)
-                .column(col)
-                .price(seatToModify.getPrice())
+                .seatId(seatToModify.getOriginalSeatId())
                 .build();
+            seatRepository.deleteById(seatId);
+        }
 
-        seatRepository.save(seat);
+        seatRepository.save(TheaterMapper.seatRegisterDTOToSeat(seatToModify, theater));
     }
 
     @Transactional
@@ -153,7 +105,7 @@ public class TheaterService {
 
         SeatId seatId = SeatId.builder()
                 .theater(theater)
-                .seatId(seatToDelete.getColumn() + Integer.toString(seatToDelete.getRow()))
+                .seatId(seatToDelete.getRow() + Integer.toString(seatToDelete.getColumn()))
                 .build();
 
         seatRepository.deleteById(seatId);

@@ -9,5 +9,8 @@ import java.util.List;
 
 public interface SeatRepository extends JpaRepository<Seat, SeatId> {
 
-    List<Seat> findAllByTheater(Theater theater);
+    void deleteBySeatId(String seatId);
+
+
+    List<Seat> findAllByTheaterOrderBySeatIdAsc(Theater theater);
 }

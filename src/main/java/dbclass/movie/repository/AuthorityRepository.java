@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AuthorityRepository extends JpaRepository<UserAuthority, UserAuthorityId> {
 
     Optional<UserAuthority> findByLoginId(String loginId);
+    boolean existsByLoginId(String loginId);
 }

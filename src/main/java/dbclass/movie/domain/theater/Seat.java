@@ -13,17 +13,18 @@ import java.util.Objects;
 public class Seat {
 
     @Id
+    @Column(name = "SEAT_ID")
     private String seatId;
 
     @Id
-    @JoinColumn(name = "THEATER")
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "THEATER_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
     private Theater theater;
 
-    @Column(name = "row", nullable = false)
-    private char row;
+    @Column(name = "ROW_NUM", nullable = false)
+    private Character row;
 
-    @Column(name = "column", nullable = false)
+    @Column(name = "COL_NUM", nullable = false)
     private int column;
 
     @Column(name = "PRICE", nullable = false)
@@ -36,7 +37,7 @@ public class Seat {
         this.theater = theater;
         this.price = price;
 
-        this.seatId = column + Integer.toString(row);
+        this.seatId = row + Integer.toString(column);
     }
 
     @Override

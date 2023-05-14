@@ -6,6 +6,7 @@ import dbclass.movie.dto.movie.*;
 import dbclass.movie.exceptionHandler.DataExistsException;
 import dbclass.movie.exceptionHandler.DataNotExistsException;
 import dbclass.movie.exceptionHandler.ServerException;
+import dbclass.movie.mapper.MovieMapper;
 import dbclass.movie.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -17,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
@@ -45,56 +45,18 @@ public class MovieService {
         Rating rating = ratingRepository.findById(registerDTO.getRatingId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 등급입니다.", "rating"));
         Poster poster = createPoster(registerDTO.getPoster());
 
-        Movie movie = Movie.builder()
-                .title(registerDTO.getTitle())
-                .releaseDate(Date.valueOf(registerDTO.getReleaseDate()))
-                .runningTime(registerDTO.getRunningTime())
-                .info(registerDTO.getInfo())
-                .countryCode(registerDTO.getCountryCode())
-                .language(registerDTO.getLanguage())
-                .poster(poster)
-                .director(director)
-                .rating(rating)
-                .build();
-
+        Movie movie = MovieMapper.movieRegisterDTOToMovie(registerDTO, poster, director, rating);
         movie = movieRepository.save(movie);
 
-        CastInMovieDTO directorDTO = CastInMovieDTO.builder()
-                .castId(director.getCastId())
-                .name(director.getName())
-                .build();
-
-        RatingDTO ratingDTO = RatingDTO.builder()
-                .ratingId(rating.getRatingId())
-                .name(rating.getName())
-                .minAge(rating.getMinAge())
-                .build();
-
-        PosterDTO posterDTO = PosterDTO.builder()
-                .posterId(poster.getPosterId())
-                .uuid(poster.getUuid())
-                .fileName(poster.getFileName())
-                .fileUrl(poster.getFileUrl())
-                .build();
-
         List<RoleAddDTO> rolesToAddDTO = registerDTO.getCastRoles();
-        ListIterator list = rolesToAddDTO.listIterator();
-        while (list.hasNext()) {
-            addRole(movie.getMovieId(), (RoleAddDTO) list.next());
+        if(rolesToAddDTO != null) {
+            ListIterator list = rolesToAddDTO.listIterator();
+            while (list.hasNext()) {
+                addRole(movie.getMovieId(), (RoleAddDTO) list.next());
+            }
         }
 
-        return MovieDTO.builder()
-                .movieId(movie.getMovieId())
-                .title(movie.getTitle())
-                .releaseDate(movie.getReleaseDate())
-                .runningTime(movie.getRunningTime())
-                .info(movie.getInfo())
-                .countryCode(movie.getCountryCode())
-                .language(movie.getLanguage())
-                .poster(posterDTO)
-                .director(directorDTO)
-                .rating(ratingDTO)
-                .build();
+        return MovieMapper.movieToMovieDTO(movie);
     }
 
     @Transactional
@@ -119,68 +81,29 @@ public class MovieService {
     }
 
     @Transactional
-    public List<RatingDTO> addRating(RatingDTO ratingDTO) {
+    public List<RatingDTO> updateRating(RatingDTO ratingDTO) {
 
         if(ratingRepository.existsByName(ratingDTO.getName())) {
             throw new DataExistsException("존재하는 rating 이름입니다.", "rating");
         }
 
-        Rating rating = Rating.builder()
-                .name(ratingDTO.getName())
-                .minAge(ratingDTO.getMinAge())
-                .build();
-
-        ratingRepository.save(rating);
-
-        return getRatingList();
-    }
-
-    @Transactional
-    public List<RatingDTO> modifyRating(RatingDTO ratingDTO) {
-        if(!ratingRepository.existsById(ratingDTO.getRatingId())) {
-            throw new DataNotExistsException("존재하지 않는 rating입니다.", "rating");
-        }
-
-        Rating rating = Rating.builder()
-                .ratingId(ratingDTO.getRatingId())
-                .minAge(ratingDTO.getMinAge())
-                .name(ratingDTO.getName())
-                .build();
-        ratingRepository.save(rating);
+        ratingRepository.save(MovieMapper.ratingDTOToRating(ratingDTO));
 
         return getRatingList();
     }
 
     @Transactional(readOnly = true)
     public List<RatingDTO> getRatingList() {
-        return ratingRepository.findAll().stream().map(rating -> ratingMapper(rating)).collect(Collectors.toList());
+        return ratingRepository.findAll().stream().map(rating -> MovieMapper.ratingToRatingDTO(rating)).collect(Collectors.toList());
     }
 
-    private RatingDTO ratingMapper(Rating rating) {
-        return RatingDTO.builder()
-                .ratingId(rating.getRatingId())
-                .name(rating.getName())
-                .minAge(rating.getMinAge())
-                .build();
-
-    }
 
     //같은 인물 저장되어 있는지 확인할 방법은?
     @Transactional
     public List<CastInMovieDTO> addCast(CastInfoDTO infoDTO) {
         ImageDTO imageDTO = createCastImageDTO(infoDTO.getProfileImage());
 
-        Cast cast = Cast.builder()
-                .name(infoDTO.getName())
-                .birthDate(Date.valueOf(infoDTO.getBirthDate()))
-                .nationality(infoDTO.getNationality())
-                .info(infoDTO.getInfo())
-                .uuid(imageDTO.getUuid())
-                .fileName(imageDTO.getFileName())
-                .fileUrl(imageDTO.getFileUrl())
-                .build();
-
-        cast = castRepository.save(cast);
+        castRepository.save(MovieMapper.castInfoDTOWithImageToCast(infoDTO, imageDTO));
         return getDirectorList();
     }
 
@@ -200,21 +123,14 @@ public class MovieService {
 
     @Transactional
     public List<CastInMovieDTO> modifyCast(CastInfoDTO infoDTO) {
-        Cast originalCast = castRepository.findById(infoDTO.getCastId()).orElseThrow(() -> new DataNotExistsException("존재하지 않는 감독/배우입니다.", "cast"));
+        if(infoDTO.getProfileImage().isEmpty()) {
+            castRepository.updateWithoutImage(MovieMapper.castInfoDTOToCast(infoDTO));
+            return getDirectorList();
+        }
 
-        ImageDTO imageDTO = infoDTO.getProfileImage().isEmpty() ? null : createCastImageDTO(infoDTO.getProfileImage());
+        ImageDTO imageDTO = createCastImageDTO(infoDTO.getProfileImage());
 
-        Cast cast = Cast.builder()
-                .castId(originalCast.getCastId())
-                .name(infoDTO.getName())
-                .birthDate(Date.valueOf(infoDTO.getBirthDate()))
-                .nationality(infoDTO.getNationality())
-                .info(infoDTO.getInfo())
-                .uuid(imageDTO != null ? imageDTO.getUuid() : originalCast.getUuid())
-                .fileName(imageDTO != null ? imageDTO.getFileName() : originalCast.getFileName())
-                .fileUrl(imageDTO != null ? imageDTO.getFileUrl() : originalCast.getFileUrl())
-                .build();
-
+        Cast cast = MovieMapper.castInfoDTOWithImageToCast(infoDTO, imageDTO);
         castRepository.save(cast);
         return getDirectorList();
     }
@@ -222,11 +138,7 @@ public class MovieService {
     @Transactional(readOnly = true)
     public List<CastInMovieDTO> getDirectorList() {
         List<Cast> directorList = castRepository.findAll();
-        return directorList.stream().map(cast -> castMapper(cast)).collect(Collectors.toList());
-    }
-
-    private CastInMovieDTO castMapper(Cast cast) {
-        return CastInMovieDTO.builder().castId(cast.getCastId()).name(cast.getName()).birthDate(cast.getBirthDate()).build();
+        return directorList.stream().map(cast -> MovieMapper.castToCastInMovieDTO(cast)).collect(Collectors.toList());
     }
 
     @Transactional
@@ -261,16 +173,9 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public List<GenreDTO> loadGenreList() {
-
-        return genreRepository.findAll().stream().map(genre -> genreMapper(genre)).collect(Collectors.toList());
+        return genreRepository.findAll().stream().map(genre -> MovieMapper.genreToGenreDTO(genre)).collect(Collectors.toList());
     }
 
-    private GenreDTO genreMapper(Genre genre) {
-        return GenreDTO.builder()
-                .genreId(genre.getGenreId())
-                .name(genre.getName())
-                .build();
-    }
 //
 //    @Transactional
 //    public void addGenreToMovie()

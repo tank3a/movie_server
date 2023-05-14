@@ -41,6 +41,9 @@ public class AdminService {
 
         admin = adminRepository.save(admin);
 
+        if(authorityRepository.existsByLoginId(admin.getLoginId())) {
+            throw new DataExistsException("이미 사용중인 ID입니다.", "Admin");
+        }
         UserAuthority authority = UserAuthority.builder()
                 .loginId(admin.getLoginId())
                 .password(admin.getPassword())

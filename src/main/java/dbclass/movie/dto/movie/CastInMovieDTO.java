@@ -13,5 +13,4 @@ public class CastInMovieDTO {
 
     private Long castId;
     private String name;
-    private Date birthDate;
 }

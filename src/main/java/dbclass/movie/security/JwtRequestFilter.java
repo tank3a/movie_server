@@ -1,6 +1,7 @@
 package dbclass.movie.security;
 
 import dbclass.movie.exceptionHandler.AccessTokenExpireException;
+import dbclass.movie.exceptionHandler.JwtAuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,13 +30,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if(token != null) {
-            int validation = jwtTokenProvider.validateToken(token);
-            if(validation == 1) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-            else if(validation == 0) {
-                throw new AccessTokenExpireException("access token 시간 만료");
+            try {
+                int validation = jwtTokenProvider.validateToken(token);
+                if(validation == 1) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+                else if(validation == 0) {
+                    throw new AccessTokenExpireException("access token 시간 만료");
+                }
+            } catch (JwtAuthenticationException e) {
+                request.setAttribute("exception", e.getErrorResponse());
             }
         }
 

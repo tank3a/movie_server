@@ -92,4 +92,16 @@ public class ExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(DateErrorException.class)
+    public ResponseEntity<ErrorResponse> dateSetError(DateErrorException exception) {
+        log.warn("invalid date request: " + exception.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(exception.getMessage())
+                .errorCode("INVALID_DATE")
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }

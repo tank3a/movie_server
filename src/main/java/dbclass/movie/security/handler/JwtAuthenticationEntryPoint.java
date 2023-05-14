@@ -15,8 +15,9 @@ import java.io.IOException;
 @Component
 @Log4j2
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-    }
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);}
 }

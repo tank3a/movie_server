@@ -38,7 +38,7 @@ public class SecurityConfig {
     private static final String[] URL_ADMIN_ONLY = {
             "/movie/rating/**",
             "/movie/cast/**",
-            "/movie/role/**",
+            "/movie/{id}/role/**",
             "/movie/genre/**",
             "/movie/**",
             "/theater/register",

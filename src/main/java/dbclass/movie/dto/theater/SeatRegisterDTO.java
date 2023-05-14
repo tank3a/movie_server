@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 public class SeatRegisterDTO {
 
+    private String originalSeatId;
     private String seatLocation;
     private int price;
 }

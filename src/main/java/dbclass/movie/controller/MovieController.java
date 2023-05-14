@@ -26,12 +26,12 @@ public class MovieController {
 
     @PostMapping(value = "/rating/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<RatingDTO> registerRating(@ModelAttribute RatingDTO ratingDTO) {
-        return movieService.addRating(ratingDTO);
+        return movieService.updateRating(ratingDTO);
     }
 
     @PostMapping(value = "/rating/modify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<RatingDTO> modifyRating(@ModelAttribute RatingDTO ratingDTO) {
-        return movieService.modifyRating(ratingDTO);
+        return movieService.updateRating(ratingDTO);
     }
 
     @GetMapping("/rating/list")
@@ -39,7 +39,7 @@ public class MovieController {
         return movieService.getRatingList();
     }
 
-    @PostMapping(value = "/role/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{movieId}/role/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void addRole(@PathVariable("movieId") Long movieId, @ModelAttribute RoleAddDTO rolesToAddDTO) {
         movieService.addRole(movieId, rolesToAddDTO);
     }
